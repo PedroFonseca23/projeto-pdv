@@ -1,0 +1,84 @@
+PDV PRO — Rodada 2 de melhorias
+==================================
+(continuação do pacote anterior — banco de dados, DANFE e emissão em
+homologação já estavam corrigidos; esta rodada foca no que você pediu agora)
+
+1) O AGENTE FISCAL AGORA SOBE SOZINHO, JUNTO COM O PDV
+   Novo arquivo: AgenteFiscalManager.cs
+   Ao abrir o PDVPro.exe, ele já tenta iniciar o agente_fiscal.py (ou
+   agente_fiscal.exe, se existir) automaticamente, em segundo plano, sem
+   nenhuma janela de terminal aparecendo. Você não precisa mais abrir um
+   terminal manualmente antes de emitir uma nota.
+   - Se o Python não for encontrado no PATH, o PDV avisa (rodapé do menu
+     lateral fica vermelho: "Agente Fiscal: parado" — clique para ver o
+     motivo e tentar de novo).
+   - Ao fechar o PDV, o processo do agente é encerrado também (não fica
+     "zumbi" rodando escondido).
+   - IMPORTANTE: adicionei este arquivo ao compilar.bat. Se você tiver
+     um compilar.bat antigo salvo em outro lugar, troque pelo novo daqui,
+     senão a compilação vai reclamar que falta AgenteFiscalManager.cs.
+
+   OPCIONAL (recomendado para levar a outro computador sem Python):
+   Rode compilar_agente.bat uma vez (na máquina que tem Python) para gerar
+   agente_fiscal.exe via PyInstaller. Copiando esse .exe para a pasta do
+   PDVPro.exe, o programa passa a usá-lo automaticamente e ninguém mais
+   precisa ter Python instalado.
+
+2) TELA "NOTAS FISCAIS": agora tudo automático
+   - Indicador "● Agente fiscal ativo" em tempo real
+   - A tabela se atualiza sozinha a cada 4 segundos (não precisa mais
+     clicar em "Atualizar Tabela" toda hora — o botão continua lá se
+     você quiser forçar na hora)
+   - Ao clicar "Emitir NF-e", se o agente não estiver rodando por algum
+     motivo, o PDV tenta subir ele na hora
+
+3) DASHBOARD: mais opções e melhor qualidade gráfica
+   - Novo gráfico "TOP 5 CLIENTES (valor total)" — ranking de quem mais
+     comprou
+   - Nova tabela "ÚLTIMOS PEDIDOS" (os 8 mais recentes, direto no painel)
+   - Tela agora rola verticalmente (scroll) para caber mais informação
+     sem precisar espremer tudo
+   - Corrigi um bug de layout que eu mesmo ia introduzir (larguras fixas
+     que quebrariam a tela em janelas menores) — o dashboard continua
+     100% responsivo ao redimensionar a janela
+
+4) TELA "PEDIDOS": carrinho corrigido e melhorado
+   - BUG CORRIGIDO: se você adicionasse o mesmo produto duas vezes no
+     carrinho, a quantidade era somada por baixo dos panos, mas a lista
+     visual mostrava duas linhas separadas (inconsistente). Agora a
+     lista sempre reflete exatamente o carrinho.
+   - Cada item agora mostra o subtotal (ex: "2x Bolo de Chocolate — R$
+     160,00"), não só a quantidade
+   - NOVO: botão "Remover Selecionado" para tirar um item específico do
+     carrinho sem precisar esvaziar tudo
+   - O total agora é sempre recalculado a partir dos itens reais do
+     carrinho (evita desalinhamentos que aconteciam antes com contas
+     incrementais)
+
+ARQUIVOS DESTE PACOTE (substituem os da rodada anterior):
+   MenuPrincipal.cs, Telas.cs, BancoDeDados.cs (igual à rodada 1),
+   FiscalService.cs (igual), agente_fiscal.py (igual), gerar_danfe.py
+   (igual), requirements.txt (igual)
+   NOVOS: AgenteFiscalManager.cs, compilar_agente.bat
+   ATUALIZADO: compilar.bat (agora inclui AgenteFiscalManager.cs)
+
+COMO TESTAR
+   1. Substitua todos os .cs pela versão desta pasta (mesmo diretório do
+      compilar.bat) e rode compilar.bat.
+   2. Abra o PDVPro.exe — repare no rodapé do menu lateral: deve aparecer
+      "● Agente Fiscal: ativo" em poucos segundos (precisa de Python +
+      "pip install -r requirements.txt" na máquina, OU do
+      agente_fiscal.exe gerado pelo compilar_agente.bat).
+   3. Crie um pedido, vá em Notas Fiscais, selecione o pedido, "Emitir
+      NF-e", confirme os dados do cliente.
+   4. Não precisa fazer mais nada — a tabela vai virar "Autorizada
+      (homologação)" sozinha em poucos segundos, e o botão "Abrir DANFE
+      (PDF)" já vai funcionar.
+
+O QUE AINDA NÃO DÁ PARA AUTOMATIZAR SOZINHO
+   Emissão fiscal REAL (produção) continua exigindo certificado digital
+   A1/A3 e um provedor fiscal contratado (Focus NFe, PlugNotas, eNotas
+   etc.) — isso é uma exigência legal/de infraestrutura, não algo que dá
+   pra resolver só com código. O sistema roda em homologação (teste) por
+   padrão, com o ponto de plugue documentado em FiscalService.cs e em
+   agente_fiscal.py -> emitir_producao().
